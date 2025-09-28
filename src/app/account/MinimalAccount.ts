@@ -7,10 +7,10 @@ import {
   Wallet,
   FunctionFragment,
   TransactionReceipt,
+  TransactionRequest
 } from "ethers";
-import { TransactionRequest } from "ethers/lib.esm";
-import { MOCK_ERC20_INTERFACE } from "../lib/smart-contracts-abi";
-import { decodeLogs } from "../lib/log-decoder";
+import { MOCK_ERC20_INTERFACE } from "../../../lib/smart-contracts-abi";
+import { decodeLogs } from "../../../lib/log-decoder";
 
 interface IChainConfig {
   chainId: bigint;

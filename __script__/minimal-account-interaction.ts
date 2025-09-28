@@ -1,5 +1,5 @@
 import { dataSlice, ethers, id, JsonRpcProvider, Wallet } from "ethers";
-import { MinimalAccount } from "../src/MinimalAccount";
+import { MinimalAccount } from "../src/app/account/MinimalAccount";
 import dotenv from "dotenv";
 import path from "path";
 import { MOCK_ERC20_INTERFACE } from "../lib/smart-contracts-abi";

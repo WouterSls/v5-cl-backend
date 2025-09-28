@@ -1,0 +1,809 @@
+openapi: 3.1.1
+info:
+  title: CoinLiquidator OpenAPI definition
+  version: v0.4
+  description: CoinLiquidator API for wallet and trading operations
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development application server url
+  - url: https://senter.be/coinliquidator
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Wallet
+    description: Wallet Operations
+  - name: Trade
+    description: Trade Operations
+
+paths:
+  # Wallets
+  /protected/wallets/{address}/tokens:
+    get:
+      operationId: getWalletTokens
+      summary: Get all tokens for wallet
+      description: Retrieve all tokens for a given wallet address
+      tags:
+        - Wallet
+      responses:
+        "200":
+          description: Wallets retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Wallets retrieved successfully"
+                          wallets:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/WalletDto"
+                        required:
+                          - message
+                          - wallets
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # Trades
+  /protected/tradeSetups:
+    post:
+      operationId: createTradeSetup
+      summary: create a new trade setup
+      description: create a setup dto form a setup request to use in execution
+      tags:
+        - Trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTradeSetupRequest"
+            description: Trade Setup request
+      responses:
+        "201":
+          description: Trade Setup successfully created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade setup successfully created"
+                          tradeSetup:
+                            $ref: "#/components/schemas/TradeSetupDto"
+                        required:
+                          - message
+                          - tradeSetup
+                    required:
+                      - data
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /protected/quotes:
+    post:
+      operationId: quoteTradeExecution
+      summary: quote a trade execution
+      description: quote a trade execution
+      tags:
+        - Trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTradeExecutionRequest"
+            description: Trade Execution Request
+      responses:
+        "201":
+          description: Trade Execution successfully quoted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade Execution successfully quoted"
+                          quote:
+                            $ref: "#/components/schemas/QuoteDto"
+                        required:
+                          - message
+                          - quote
+                    required:
+                      - data
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /protected/tradeExecutions:
+    get:
+      operationId: getTradeExecutions
+      summary: Get all trade executions
+      description: Retrieve all trading executions
+      tags:
+        - Trade
+      responses:
+        "200":
+          description: Trade executions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade executions retrieved successfully"
+                          tradeExecutions:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/TradeExecutionDto"
+                        required:
+                          - message
+                          - tradeExecutions
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      operationId: createTradeExecution
+      summary: create a new trade execution
+      description: create a trade execution
+      tags:
+        - Trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTradeExecutionRequest"
+            description: Trade Execution Request
+      responses:
+        "201":
+          description: Trade Execution successfully created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade Execution successfully created"
+                          tradeExecution:
+                            $ref: "#/components/schemas/TradeExecutionDto"
+                        required:
+                          - message
+                          - tradeExecution
+                    required:
+                      - data
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /protected/tradeExecutions/prices:
+    get:
+      operationId: getTradeExecutionPrices
+      summary: Get current USD prices for trade executions
+      description: Returns a map of chainType to a map of lowercase token address to current USD price for the current set of trade executions.
+      tags:
+        - Trade
+      responses:
+        "200":
+          description: Prices retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Prices retrieved successfully"
+                          prices:
+                            $ref: "#/components/schemas/TradeExecutionsPricesDto"
+                        required:
+                          - message
+                          - prices
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /protected/tradeExecutions/{id}:
+    put:
+      operationId: updateTradeExecution
+      summary: update a trade execution
+      description: endpoint that can be used to update / cancel trade executions
+      tags:
+        - Trade
+      requestBody:
+      responses:
+        "204":
+          description: trade updated successfully, no content
+          content: {}
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /protected/tradeConfirmations:
+    get:
+      operationId: getTradeConfirmations
+      summary: Get all trade confirmations
+      description: Retrieve all trade confirmations
+      tags:
+        - Trade
+      responses:
+        "200":
+          description: Trade confirmations retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade executions retrieved successfully"
+                          tradeConfirmations:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/TradeConfirmationDto"
+                        required:
+                          - message
+                          - tradeConfirmations
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /protected/tradeErrors:
+    get:
+      operationId: getTradeErrors
+      summary: Get all trade erros
+      description: Retrieve all trade errors
+      tags:
+        - Trade
+      responses:
+        "200":
+          description: Trade errors retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade errors retrieved successfully"
+                          tradeErrors:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/TradeErrorDto"
+                        required:
+                          - message
+                          - tradeErrors
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Enter your bearer token"
+
+  schemas:
+    # Standard API Response Format
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+      required:
+        - success
+
+    # Error Response Format
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            success:
+              type: boolean
+              enum: [false]
+            error:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Error code for programmatic handling
+                message:
+                  type: string
+                  description: Human-readable error message
+                details:
+                  type: object
+                  description: Additional error details
+              required:
+                - code
+                - message
+          required:
+            - success
+            - error
+
+    # DTOs
+    WalletDto:
+      type: object
+      properties:
+        id:
+          type: number
+          format: double
+        name:
+          type: string
+        address:
+          type: string
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectionDto"
+      required:
+        - id
+        - name
+        - address
+    ConnectionDto:
+      type: object
+      properties:
+        id:
+          type: number
+          format: double
+        walletId:
+          type: number
+          format: double
+        rpcUrl:
+          type: string
+          format: uri
+        chainType:
+          type: string
+          enum: [ETH, BASE, ARB]
+      required:
+        - id
+        - walletId
+        - rpcUrl
+        - chainType
+
+    TradeSetupDto:
+      type: object
+      properties:
+        walletId:
+          type: number
+          format: double
+          description: The ID of the wallet to trade with
+        inputTokenAddress:
+          type: string
+          description: Input token address
+        inputTokenName:
+          type: string
+          description: Input token name
+        chainType:
+          type: string
+          enum: [ETH, BASE, ARB]
+          description: Blockchain network for the trade
+        amountOwned:
+          type: string
+          description: formatted amount of tokens owned
+        usdPrice:
+          type: string
+          description: current usd price
+      required:
+        - walletId
+        - inputTokenAddress
+        - inputTokenName
+        - chainType
+        - amountOwned
+        - usdPrice
+    TradeExecutionDto:
+      type: object
+      properties:
+        id:
+          type: number
+          format: double
+          description: The ID of the Trade Execution
+        status:
+          type: string
+          enum: ["PENDING", "CANCELED", "EXECUTING", "CONFIRMED", "FAILED"]
+          description: The status of the Trade Execution
+        chainType:
+          type: string
+          enum: [ETH, BASE, ARB]
+          description: Blockchain network for the trade
+        inputTokenAddress:
+          type: string
+          description: Address of the input token
+        inputTokenName:
+          type: string
+          description: Name of the input token
+        inputAmount:
+          type: string
+          description: Amount of input token
+        outputToken:
+          type: string
+          description: Output token
+        outputTokenAddress:
+          type: string
+          description: Output token address
+        isLimitOrder:
+          type: boolean
+          description: Whether this is a limit order
+        isStopLossOrder:
+          type: boolean
+          description: Whether this is a stop loss order
+        tradingPrice:
+          type: number
+          format: double
+          description: Price for limit orders (required if isLimitOrder OR is isStopLossOrder is true)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - chainType
+        - inputTokenAddress
+        - inputTokenName
+        - inputAmount
+        - outputToken
+        - outputTokenAddress
+        - isLimitOrder
+        - isStopLossOrder
+        - createdAt
+        - updatedAt
+    QuoteDto:
+      type: object
+      properties:
+        strategy:
+          type: string
+          description: Name of the protocol that's being used to trade
+        estimatedOutputTokensReceived:
+          type: string
+          description: Estimated tokens received in request output token
+      required:
+        - strategy
+        - estimatedOutputTokensReceived
+    TradeConfirmationDto:
+      type: object
+      properties:
+        id:
+          type: number
+          format: double
+          description: The ID of the Trade Confirmation
+        tradeExecutionId:
+          type: number
+          format: double
+          description: The ID of the Trade execution
+        strategy:
+          type: string
+          description: The name of the protocol used to trade
+        route:
+          type: string
+          description: The route used for the trade
+        transactionHash:
+          type: string
+          description: The transaction hash of the trade
+        confirmedBlock:
+          type: number
+          description: The block in which the transaction was confirmed
+        gasCost:
+          type: string
+          description: The gas cost of the transaction(s)
+        ethPriceUsd:
+          type: string
+          description: The ETH usd price snapshot on the protocol that executed during execution
+        tokenPriceUsd:
+          type: string
+          description: The token usd price snapshot on coingecko (GeckoTerminal API) during execution
+        tokensSpent:
+          type: string
+          description: The formatted amount of tokens spent
+        ethReceived:
+          type: string
+          description: The formatted amount of ETH received
+        tokensReceived:
+          type: string
+          description: The formatted amount of tokens received
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the trade confirmation was created
+      required:
+        - id
+        - tradeExecutionId
+        - strategy
+        - route
+        - transactionHash
+        - confirmedBlock
+        - gasCost
+        - ethPriceUsd
+        - tokenPriceUsd
+        - tokensSpent
+        - ethReceived
+        - tokensReceived
+        - createdAt
+    TradeErrorDto:
+      type: object
+      properties:
+        id:
+          type: number
+          format: double
+          description: The ID of the Trade Error
+        tradeExecutionId:
+          type: number
+          format: double
+          description: The ID
+        reason:
+          type: string
+          description: The reason why the trade failed
+        transactionTo:
+          type: string
+          description: The address to which the transaction was send
+        transactionData:
+          type: string
+          description: The raw transaction data
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the trade error was created
+      required:
+        - id
+        - tradeExecutionId
+        - reason
+        - strategy
+        - route
+        - transactionData
+        - createdAt
+
+    TradeExecutionsPricesDto:
+      type: object
+      description: Map keyed by chainType (e.g. ETH, BASE, ARB) to a token price map. For each chain, maps lowercase token address to its USD price.
+      additionalProperties:
+        type: object
+        description: Map of lowercase token address to its USD price
+        additionalProperties:
+          type: number
+
+    # Request DTOs
+    CreateWalletRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Human-readable wallet name
+          minLength: 1
+          maxLength: 100
+        privateKey:
+          type: string
+          description: Wallet private key
+          minLength: 32
+          maxLength: 64
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateConnectionRequest"
+      required:
+        - name
+        - privateKey
+    CreateConnectionRequest:
+      type: object
+      properties:
+        rpcUrl:
+          type: string
+          format: uri
+          description: RPC endpoint URL
+      required:
+        - rpcUrl
+    CreateTradeSetupRequest:
+      type: object
+      properties:
+        inputToken:
+          type: string
+          description: Input token address
+        chainType:
+          type: string
+          enum: [ETH, BASE, ARB]
+          description: Blockchain network for the trade
+        walletId:
+          type: number
+          format: double
+          description: The wallet to trade with
+    CreateTradeExecutionRequest:
+      type: object
+      properties:
+        tradeSetup:
+          $ref: "#/components/schemas/TradeSetupDto"
+          description: The trade setup details
+        inputAmount:
+          type: string
+          description: Amount of input token
+        outputToken:
+          type: string
+          description: Output token address or symbol
+        isLimitOrder:
+          type: boolean
+          description: Whether this is a limit order
+        isStopLossOrder:
+          type: boolean
+          description: Whether this is a stop loss order
+        tradingPrice:
+          type: number
+          format: double
+          description: Price for limit orders and stop loss orders (required if either isLimitOrder or isStopLoss is true)
+      required:
+        - tradeSetup
+        - inputAmount
+        - outputToken
+        - isLimitOrder
+        - isStopLossOrder
+
+  responses:
+    ValidationError:
+      description: Incorrect input
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [VALIDATION_ERROR]
+                      message:
+                        type: string
+                        example: "Request body doesn't match input type"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [NOT_FOUND]
+                      message:
+                        type: string
+                        example: "Wallet not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [INTERNAL_ERROR]
+                      message:
+                        type: string
+                        example: "Internal server error"
+
+    NotAuthorizedError:
+      description: User not authorized
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [NOT_AUTHORIZED]
+                      message:
+                        type: string
+                        example: "User not authorized"
+
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/ErrorResponse"
+              - type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        enum: [FORBIDDEN]
+                      message:
+                        type: string
+                        example: "Forbidden"
