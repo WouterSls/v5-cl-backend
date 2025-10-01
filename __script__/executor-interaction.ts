@@ -5,17 +5,32 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 import { Executor } from "../src/resources/blockchain/smartcontracts/executor/Executor";
 import { EXECUTOR_INTERFACE } from "../src/resources/blockchain/smartcontracts/executor/executor-abi";
-import { ethers, JsonRpcProvider, TransactionReceipt, TransactionRequest, Wallet } from "ethers";
-import { ERC20_INTERFACE, ERC20_MOCK_INTERFACE } from "../src/resources/blockchain/smartcontracts/erc20/erc20-abi";
+import {
+  ethers,
+  JsonRpcProvider,
+  TransactionReceipt,
+  TransactionRequest,
+  Wallet,
+} from "ethers";
+import {
+  ERC20_INTERFACE,
+  ERC20_MOCK_INTERFACE,
+} from "../src/resources/blockchain/smartcontracts/erc20/erc20-abi";
 import { PERMIT2_TYPES } from "../src/resources/blockchain/smartcontracts/permit2/permit2-types";
 import { Permit2 } from "../src/resources/blockchain/smartcontracts/permit2/Permit2";
-import { Order, Protocol, RouteData, Trade } from "../src/resources/blockchain/smartcontracts/executor/executor-types";
+import {
+  Order,
+  Protocol,
+  RouteData,
+  Trade,
+} from "../src/resources/blockchain/smartcontracts/executor/executor-types";
 import { PermitWitnessTransferFrom } from "../src/resources/blockchain/smartcontracts/permit2/permit2-types";
 import { decodeLogs } from "../lib/log-decoder";
 import { decodeError } from "../src/resources/blockchain/lib/decoding-utils";
 
 // Witness type string that matches the contract's WITNESS_TYPE_STRING
-const WITNESS_TYPE_STRING = "Order witness)Order(address maker,address inputToken,uint256 inputAmount,address outputToken,uint256 minAmountOut,uint256 expiry,uint256 nonce)TokenPermissions(address token,uint256 amount)";
+const WITNESS_TYPE_STRING =
+  "Order witness)Order(address maker,address inputToken,uint256 inputAmount,address outputToken,uint256 minAmountOut,uint256 expiry,uint256 nonce)TokenPermissions(address token,uint256 amount)";
 
 async function executorInteraction() {
   /**
@@ -30,7 +45,7 @@ async function executorInteraction() {
   const TOKEN_B_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
   //const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
-  const PERMIT2_ADDRESS = "0x04Bf6dd19092d8DC89dE2499a037958296D20E49";
+  const PERMIT2_ADDRESS = "0xBE05d211eD3fd34A1624060419358AA073957faC";
   const EXECUTOR_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
   const localRpc = process.env.LOCAL_RPC;
@@ -75,12 +90,16 @@ async function executorInteraction() {
   console.log("TOKEN A:", TOKEN_A_ADDRESS);
   console.log();
   console.log("DEPLOYER BALANCE\tUSER BALANCE\tRELAYER BALANCE");
-  console.log(`${ethers.formatEther(deployerBalance)}\t\t\t${ethers.formatEther(userBalance)}\t\t${ethers.formatEther(relayerBalance)}`);
+  console.log(
+    `${ethers.formatEther(deployerBalance)}\t\t\t${ethers.formatEther(
+      userBalance
+    )}\t\t${ethers.formatEther(relayerBalance)}`
+  );
   console.log();
 
-  //const token = TOKEN_A_ADDRESS;
-  //const amount = "100";
-  //const recipient = user.address;
+  const token = TOKEN_A_ADDRESS;
+  const amount = "100";
+  const recipient = user.address;
   //await mintTokens(token, amount, recipient, deployer);
   //await approvePermit2(token, user, PERMIT2_ADDRESS);
 
@@ -112,13 +131,13 @@ async function executorInteraction() {
   const permit: PermitWitnessTransferFrom = {
     permitted: {
       token: TOKEN_A_ADDRESS,
-      amount: inputAmount
+      amount: inputAmount,
     },
     spender: EXECUTOR_ADDRESS,
     nonce: permit2Nonce,
     deadline: deadline,
-    witness: order 
-  }
+    witness: order,
+  };
 
   const domain = permit2.getDomain();
   const types = {
@@ -133,35 +152,38 @@ async function executorInteraction() {
   const trade: Trade = {
     order: order,
     permit: permit,
-    signature: signature
-  }
+    signature: signature,
+  };
 
   const routeData: RouteData = {
     protocol: Protocol.UNISWAP_V2,
-    path: [TOKEN_A_ADDRESS,TOKEN_B_ADDRESS],
+    path: [TOKEN_A_ADDRESS, TOKEN_B_ADDRESS],
     fee: "3000",
     isMultiHop: false,
-    encodedPath: "0x"
-  }
+    encodedPath: "0x",
+  };
 
-  const callData = EXECUTOR_INTERFACE.encodeFunctionData("executeTrade", [trade, routeData])
+  const callData = EXECUTOR_INTERFACE.encodeFunctionData("executeTrade", [
+    trade,
+    routeData,
+  ]);
 
   const executeTx: TransactionRequest = {
     to: EXECUTOR_ADDRESS,
-    data: callData
-  }
+    data: callData,
+  };
 
   try {
     const txResponse = await relayer.sendTransaction(executeTx);
     const txReceipt = await txResponse.wait();
     if (!txReceipt || txReceipt!.status != 1) {
-      console.log("Execute failed")
+      console.log("Execute failed");
     }
-    console.log("Execute succeeded")
+    console.log("Execute succeeded");
     const decodedLogs = decodeLogs(txReceipt!.logs);
-    console.log("DECODED LOGS")
-    console.log("-------------------")
-    console.log(decodedLogs)
+    console.log("DECODED LOGS");
+    console.log("-------------------");
+    console.log(decodedLogs);
   } catch (error) {
     const decoded = decodeError(error);
     if (decoded.type == "Decoded") {
@@ -198,7 +220,11 @@ async function mintTokens(
   console.log("Mint success");
 }
 
-async function approvePermit2(token: string, owner: Wallet, permit2Address: string) {
+async function approvePermit2(
+  token: string,
+  owner: Wallet,
+  permit2Address: string
+) {
   const encoder = ethers.AbiCoder.defaultAbiCoder();
   const selector = ethers.id("approve(address,uint256)").slice(0, 10);
   const args = encoder.encode(
@@ -217,8 +243,6 @@ async function approvePermit2(token: string, owner: Wallet, permit2Address: stri
     throw new Error("Approve failed");
   }
   console.log("Approve success");
-
-
 }
 
 if (require.main === module) {
