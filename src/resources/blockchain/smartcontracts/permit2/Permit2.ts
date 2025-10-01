@@ -14,7 +14,7 @@ export class Permit2 {
     };
   }
 
-  async getSignatureTransferNonce(wallet: Wallet): Promise<string> {
+  async getSignatureTransferNonce(wallet: Wallet): Promise<number> {
     const permit2Contract = new Contract(
       this.permit2Address,
       PERMIT2_INTERFACE,
@@ -33,17 +33,16 @@ export class Permit2 {
         if ((bitmap & bit) === 0n) {
           const nonce = (BigInt(wordPos) << 8n) | BigInt(bitPos);
           foundAvailableNonce = true;
-          return nonce.toString();
+          return Number(nonce);
         }
       }
 
       wordPos++;
 
-      if (wordPos > 1000000) {
-        // 1 million words = 256 million nonces safety check to prevent infinite loop (though practically impossible)
-        throw new Error(
-          "No available nonces found after checking 1 million words"
-        );
+      const isInfiniteLoop = wordPos > 1000000
+      if (isInfiniteLoop) {
+        const errorMessage = "Infinite Loop Prevention: No available nonces found after checking 1 million words";
+        throw new Error(errorMessage);
       }
     }
 
