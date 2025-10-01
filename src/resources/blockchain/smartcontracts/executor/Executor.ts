@@ -4,6 +4,8 @@ import { Order } from "./executor-types";
 
 export class Executor {
   private executorAddress: string;
+  private ORDER_TYPE_DEF: string = "Order(address maker,address inputToken,uint256 inputAmount,address outputToken,uint256 minAmountOut,uint256 expiry,uint256 nonce)";
+  private ORDER_TYPEHASH: string = ethers.keccak256(ethers.toUtf8Bytes(this.ORDER_TYPE_DEF));
 
   constructor(executorAddress: string) {
     this.executorAddress = executorAddress;
@@ -28,16 +30,9 @@ export class Executor {
   }
   */
 
-  static hashOrder(order: Order) {
-    const ORDER_TYPE_DEF =
-      "Order(address maker,address inputToken,uint256 inputAmount,address outputToken,uint256 minAmountOut,uint256 expiry,uint256 nonce)";
-
-    const ORDER_TYPEHASH = ethers.keccak256(ethers.toUtf8Bytes(ORDER_TYPE_DEF));
-
-    console.log(ORDER_TYPEHASH);
-    // NOTE: order field packing must exactly match the Solidity abi.encode(ORDER_TYPEHASH, ...)
-    const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-    const encoded = abiCoder.encode(
+  /**
+  hashOrder(order: Order) {
+    const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
       [
         "bytes32",
         "address",
@@ -49,22 +44,21 @@ export class Executor {
         "uint256",
       ],
       [
-        ORDER_TYPEHASH,
+        this.ORDER_TYPEHASH,
         order.maker,
         order.inputToken,
-        BigInt(order.inputAmount), // STRING ON BIGINT DOESN'T MATTER FOR ENCODING
+        order.inputAmount,
         order.outputToken,
         order.minAmountOut,
         order.expiry,
         order.nonce,
       ]
     );
-    return ethers.keccak256(encoded); // bytes32 witness
+    return ethers.keccak256(encoded);
   }
+  */
 
   static getOrderNonce(maker: string) {
     return 0;
   }
-
-  private getDomain() {}
 }
