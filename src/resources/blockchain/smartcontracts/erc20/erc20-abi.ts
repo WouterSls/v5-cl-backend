@@ -36,5 +36,31 @@ const WETH_ABI = [
   "function withdraw(uint256 amount)",
 ] as const;
 
+const ERC20_MOCK_ABI = [
+  "event Transfer(address indexed from, address indexed to, uint256 amount)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
+
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address, uint256) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function transfer(address to, uint256 value) external returns (bool)",
+  "function transferFrom(address from, address to, uint256 value) external returns (bool)",
+  "function mint(address account, uint256 amount) external",
+  "function burn(address account, uint256 amount) external",
+
+  // ERC-6093 standardized errors
+  "error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)",
+  "error ERC20InvalidSender(address sender)",
+  "error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed)",
+  "error ERC20InvalidReceiver(address receiver)",
+  "error ERC20InvalidApprover(address approver)",
+  "error ERC20InvalidSpender(address spender)",
+] as const;
+
 export const ERC20_INTERFACE = new ethers.Interface(ERC20_ABI);
 export const WETH_INTERFACE = new ethers.Interface(WETH_ABI);
+export const ERC20_MOCK_INTERFACE = new ethers.Interface(ERC20_MOCK_ABI);

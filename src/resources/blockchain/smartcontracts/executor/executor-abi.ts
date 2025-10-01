@@ -11,7 +11,7 @@ const EXECUTOR_ABI = [
   "function emergencyWithdrawToken(address token, address to)",
   "function cancelNonce(uint256 nonce)",
 
-  "function executeTrade(tuple(tuple(address maker, address inputToken, uint256 inputAmount, address outputToken, uint256 minAmountOut, uint256 expiry, uint256 nonce) orderHash, tuple(tuple(address token, uint256 amount) permitted, uint256 nonce, uint256 deadline) permitHash, bytes signature) trade, tuple(uint8 protocol, address[] path, uint24 fee, bool isMultiHop, bytes encodedPath) routeData)",
+  "function executeTrade(tuple(tuple(address maker, address inputToken, uint256 inputAmount, address outputToken, uint256 minAmountOut, uint256 expiry, uint256 nonce) order, tuple(tuple(address token, uint256 amount) permitted, uint256 nonce, uint256 deadline) permit, bytes signature) trade, tuple(uint8 protocol, address[] path, uint24 fee, bool isMultiHop, bytes encodedPath) routeData)",
 
   "function transferOwnership(address newOwner)",
   "function renounceOwnership()",
