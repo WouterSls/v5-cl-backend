@@ -9,7 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx tsc && npx nodemon js-build/src/server.js",
-    "generate": "rm -rf js-build/src/resources/static && mkdir -p js-build/src/resources/static && cp src/resources/static/openapi.yaml js-build/src/resources/static"
+    "generate": "rm -rf js-build/src/resources/static && mkdir -p js-build/src/resources/static && cp src/resources/static/openapi.yaml js-build/src/resources/static && npx openapi-typescript ./src/resources/static/openapi.yaml -o ./src/resources/generated/openapi.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

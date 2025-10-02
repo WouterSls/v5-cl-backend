@@ -14,11 +14,11 @@ import cors from "cors";
 
 import { Router } from "express";
 
-//import { errorHandler } from "./lib/middleware/errorHandler";
+import { errorHandler } from "./lib/middleware/errorHandler";
 //import { authMiddleware } from "./lib/middleware/auth";
 
 //import { walletRouter } from "./app/wallets/api/WalletRouter";
-//import { tradeRouter } from "./app/trades/api/TradeRouter";
+import { tradeRouter } from "./app/trades/api/TradeRouter";
 
 const app = express();
 
@@ -40,11 +40,11 @@ if (process.env.NODE_ENV === "development") {
 const protectedRouter = Router();
 //protectedRouter.use(authMiddleware);
 //protectedRouter.use(walletRouter);
-//protectedRouter.use(tradeRouter);
+protectedRouter.use(tradeRouter);
 
 app.use("/api/protected", protectedRouter);
 
 // ERROR HANDLING MIDDLEWARE
-//app.use(errorHandler);
+app.use(errorHandler);
 
 export default app;

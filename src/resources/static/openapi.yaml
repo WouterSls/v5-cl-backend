@@ -8,6 +8,7 @@ servers:
   - url: http://localhost:8080/api
     description: Local development application server url
   - url: https://senter.be/coinliquidator
+    description: TEMP PLACEHOLDER
 
 security:
   - BearerAuth: []
@@ -20,16 +21,23 @@ tags:
 
 paths:
   # Wallets
-  /protected/wallets/{address}/tokens:
+  /protected/wallets/{address}:
     get:
-      operationId: getWalletTokens
-      summary: Get all tokens for wallet
-      description: Retrieve all tokens for a given wallet address
+      operationId: getWalletBalances
+      summary: Get all token balances for wallet
+      description: Retrieve all token balances in TokenBalanceDto objects for a given wallet address
       tags:
         - Wallet
+      parameters:
+        - in: path
+          name: address
+          required: true
+          schema:
+            type: string
+          description: The address of the wallet for which to retrieve the token balance list
       responses:
         "200":
-          description: Wallets retrieved successfully
+          description: Wallet token balances retrieved successfully
           content:
             application/json:
               schema:
@@ -43,13 +51,13 @@ paths:
                           message:
                             type: string
                             example: "Wallets retrieved successfully"
-                          wallets:
+                          walletBalances:
                             type: array
                             items:
-                              $ref: "#/components/schemas/WalletDto"
+                              $ref: "#/components/schemas/WalletBalancesDto"
                         required:
                           - message
-                          - wallets
+                          - walletBalances
                     required:
                       - data
         "401":
@@ -58,94 +66,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   # Trades
-  /protected/tradeSetups:
-    post:
-      operationId: createTradeSetup
-      summary: create a new trade setup
-      description: create a setup dto form a setup request to use in execution
-      tags:
-        - Trade
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateTradeSetupRequest"
-            description: Trade Setup request
-      responses:
-        "201":
-          description: Trade Setup successfully created
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          message:
-                            type: string
-                            example: "Trade setup successfully created"
-                          tradeSetup:
-                            $ref: "#/components/schemas/TradeSetupDto"
-                        required:
-                          - message
-                          - tradeSetup
-                    required:
-                      - data
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/NotAuthorizedError"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /protected/quotes:
-    post:
-      operationId: quoteTradeExecution
-      summary: quote a trade execution
-      description: quote a trade execution
-      tags:
-        - Trade
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateTradeExecutionRequest"
-            description: Trade Execution Request
-      responses:
-        "201":
-          description: Trade Execution successfully quoted
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          message:
-                            type: string
-                            example: "Trade Execution successfully quoted"
-                          quote:
-                            $ref: "#/components/schemas/QuoteDto"
-                        required:
-                          - message
-                          - quote
-                    required:
-                      - data
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/NotAuthorizedError"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
   /protected/tradeExecutions:
     get:
       operationId: getTradeExecutions
@@ -224,40 +144,6 @@ paths:
           $ref: "#/components/responses/NotAuthorizedError"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /protected/tradeExecutions/prices:
-    get:
-      operationId: getTradeExecutionPrices
-      summary: Get current USD prices for trade executions
-      description: Returns a map of chainType to a map of lowercase token address to current USD price for the current set of trade executions.
-      tags:
-        - Trade
-      responses:
-        "200":
-          description: Prices retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          message:
-                            type: string
-                            example: "Prices retrieved successfully"
-                          prices:
-                            $ref: "#/components/schemas/TradeExecutionsPricesDto"
-                        required:
-                          - message
-                          - prices
-                    required:
-                      - data
-        "401":
-          $ref: "#/components/responses/NotAuthorizedError"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
   /protected/tradeExecutions/{id}:
     put:
       operationId: updateTradeExecution
@@ -265,6 +151,14 @@ paths:
       description: endpoint that can be used to update / cancel trade executions
       tags:
         - Trade
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+            format: double
+          description: The id of the trade execution to update
       requestBody:
       responses:
         "204":
@@ -276,7 +170,6 @@ paths:
           $ref: "#/components/responses/NotFoundError"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
   /protected/tradeConfirmations:
     get:
       operationId: getTradeConfirmations
@@ -349,6 +242,84 @@ paths:
           $ref: "#/components/responses/NotAuthorizedError"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  
+  /protected/quotes:
+    post:
+      operationId: quoteTradeExecution
+      summary: quote a trade execution
+      description: quote a trade execution
+      tags:
+        - Trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTradeExecutionRequest"
+            description: Trade Execution Request
+      responses:
+        "201":
+          description: Trade Execution successfully quoted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Trade Execution successfully quoted"
+                          quote:
+                            $ref: "#/components/schemas/QuoteDto"
+                        required:
+                          - message
+                          - quote
+                    required:
+                      - data
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /protected/tradeExecutions/prices:
+    get:
+      operationId: getTradeExecutionPrices
+      summary: Get current USD prices for trade executions
+      description: Returns a map of chainType to a map of lowercase token address to current USD price for the current set of trade executions.
+      tags:
+        - Trade
+      responses:
+        "200":
+          description: Prices retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Prices retrieved successfully"
+                          prices:
+                            $ref: "#/components/schemas/TradeExecutionsPricesDto"
+                        required:
+                          - message
+                          - prices
+                    required:
+                      - data
+        "401":
+          $ref: "#/components/responses/NotAuthorizedError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   securitySchemes:
@@ -398,52 +369,47 @@ components:
             - error
 
     # DTOs
-    WalletDto:
+    WalletBalancesDto:
       type: object
       properties:
-        id:
-          type: number
-          format: double
-        name:
+        walletAddress:
           type: string
-        address:
-          type: string
-        connections:
+          description: The address of the wallet
+        tokenBalanceList:
           type: array
           items:
-            $ref: "#/components/schemas/ConnectionDto"
+            $ref: '#/components/schemas/TokenBalanceDto' 
+          description: The list of all the tokens owned by the address
       required:
-        - id
-        - name
         - address
-    ConnectionDto:
+        - tokenBalanceList
+    TokenBalanceDto:
       type: object
       properties:
-        id:
+        # Chain?
+        address:
+          type: string
+          description: the address of the token
+        name:
+          type: string
+          description: the name of the token
+        symbol:
+          type: string
+          description: the symbol of the token
+        amountOwned:
           type: number
           format: double
-        walletId:
-          type: number
-          format: double
-        rpcUrl:
-          type: string
-          format: uri
-        chainType:
-          type: string
-          enum: [ETH, BASE, ARB]
-      required:
-        - id
-        - walletId
-        - rpcUrl
-        - chainType
-
+          description: the formatted amount of tokens owned
+        permit2Approved:
+          type: boolean
+          description: boolean value that indicates if this token has a permit2 approval for the user
+    
     TradeSetupDto:
       type: object
       properties:
-        walletId:
-          type: number
-          format: double
-          description: The ID of the wallet to trade with
+        walletAddress:
+          type: string
+          description: The address of the wallet to trade with
         inputTokenAddress:
           type: string
           description: Input token address
@@ -467,6 +433,7 @@ components:
         - chainType
         - amountOwned
         - usdPrice
+
     TradeExecutionDto:
       type: object
       properties:
@@ -526,18 +493,6 @@ components:
         - isStopLossOrder
         - createdAt
         - updatedAt
-    QuoteDto:
-      type: object
-      properties:
-        strategy:
-          type: string
-          description: Name of the protocol that's being used to trade
-        estimatedOutputTokensReceived:
-          type: string
-          description: Estimated tokens received in request output token
-      required:
-        - strategy
-        - estimatedOutputTokensReceived
     TradeConfirmationDto:
       type: object
       properties:
@@ -630,6 +585,18 @@ components:
         - transactionData
         - createdAt
 
+    QuoteDto:
+      type: object
+      properties:
+        strategy:
+          type: string
+          description: Name of the protocol that's being used to trade
+        estimatedOutputTokensReceived:
+          type: string
+          description: Estimated tokens received in request output token
+      required:
+        - strategy
+        - estimatedOutputTokensReceived
     TradeExecutionsPricesDto:
       type: object
       description: Map keyed by chainType (e.g. ETH, BASE, ARB) to a token price map. For each chain, maps lowercase token address to its USD price.
@@ -640,41 +607,9 @@ components:
           type: number
 
     # Request DTOs
-    CreateWalletRequest:
+    CreateTradeExecutionRequest:
       type: object
       properties:
-        name:
-          type: string
-          description: Human-readable wallet name
-          minLength: 1
-          maxLength: 100
-        privateKey:
-          type: string
-          description: Wallet private key
-          minLength: 32
-          maxLength: 64
-        connections:
-          type: array
-          items:
-            $ref: "#/components/schemas/CreateConnectionRequest"
-      required:
-        - name
-        - privateKey
-    CreateConnectionRequest:
-      type: object
-      properties:
-        rpcUrl:
-          type: string
-          format: uri
-          description: RPC endpoint URL
-      required:
-        - rpcUrl
-    CreateTradeSetupRequest:
-      type: object
-      properties:
-        inputToken:
-          type: string
-          description: Input token address
         chainType:
           type: string
           enum: [ETH, BASE, ARB]
@@ -683,12 +618,9 @@ components:
           type: number
           format: double
           description: The wallet to trade with
-    CreateTradeExecutionRequest:
-      type: object
-      properties:
-        tradeSetup:
-          $ref: "#/components/schemas/TradeSetupDto"
-          description: The trade setup details
+        inputToken:
+          type: string
+          description: Input token address
         inputAmount:
           type: string
           description: Amount of input token
@@ -706,7 +638,9 @@ components:
           format: double
           description: Price for limit orders and stop loss orders (required if either isLimitOrder or isStopLoss is true)
       required:
-        - tradeSetup
+        - inputToken
+        - chainType       # not sure if needed
+        - walletAddress   # not sure if needed 
         - inputAmount
         - outputToken
         - isLimitOrder
