@@ -31,9 +31,7 @@ interface TokenPermissions {
 export interface RouteData {
   protocol: Protocol;
   path: string[];
-  fee: string; // uint24
-  isMultiHop: boolean; // bool
-  encodedPath: string; // bytes
+  fee: bigint[]; //empty for V2 protocols
 }
 
 export enum Protocol {

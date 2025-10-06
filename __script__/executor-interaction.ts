@@ -28,10 +28,6 @@ import { PermitWitnessTransferFrom } from "../src/resources/blockchain/smartcont
 import { decodeLogs } from "../lib/log-decoder";
 import { decodeError } from "../src/resources/blockchain/lib/decoding-utils";
 
-// Witness type string that matches the contract's WITNESS_TYPE_STRING
-const WITNESS_TYPE_STRING =
-  "Order witness)Order(address maker,address inputToken,uint256 inputAmount,address outputToken,uint256 minAmountOut,uint256 expiry,uint256 nonce)TokenPermissions(address token,uint256 amount)";
-
 async function executorInteraction() {
   /**
    *
@@ -41,12 +37,13 @@ async function executorInteraction() {
   const DEPLOYER_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
   const OWNER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-  const TOKEN_A_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-  const TOKEN_B_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+  const TOKEN_A_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+  const TOKEN_B_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+  const TOKEN_C_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
   //const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
   const PERMIT2_ADDRESS = "0xBE05d211eD3fd34A1624060419358AA073957faC";
-  const EXECUTOR_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+  const EXECUTOR_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 
   const localRpc = process.env.LOCAL_RPC;
   if (!localRpc) {
@@ -112,7 +109,6 @@ async function executorInteraction() {
    *
    */
 
-  return;
   const inputAmount = ethers.parseUnits("10", 18);
   const deadline = Math.floor(Date.now() / 1000) + 3600; // 1h expiry
   const orderNonce = Executor.getOrderNonce(user.address);
@@ -159,9 +155,7 @@ async function executorInteraction() {
   const routeData: RouteData = {
     protocol: Protocol.UNISWAP_V2,
     path: [TOKEN_A_ADDRESS, TOKEN_B_ADDRESS],
-    fee: "3000",
-    isMultiHop: false,
-    encodedPath: "0x",
+    fee: [],
   };
 
   const callData = EXECUTOR_INTERFACE.encodeFunctionData("executeTrade", [
