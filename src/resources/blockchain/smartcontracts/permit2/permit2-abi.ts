@@ -13,6 +13,9 @@ const PERMIT2_ABI = [
   // Nonce bitmap for ISignatureTransfer
   "function nonceBitmap(address owner, uint256 wordPos) external view returns (uint256)",
 
+  // Nonce invalidation for ISignatureTransfer
+  "function invalidateUnorderedNonces(uint256 wordPos, uint256 mask) external",
+
   // Domain separator for EIP-712
   "function DOMAIN_SEPARATOR() external view returns (bytes32)",
 
