@@ -126,6 +126,7 @@ async function executorInteraction() {
     minAmountOut: 0n,
     expiry: deadline,
     nonce: orderNonce,
+    authorizedExecutor: relayer.address,
   };
 
   const permit: PermitWitnessTransferFrom = {

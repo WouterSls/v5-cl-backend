@@ -12,6 +12,7 @@ export interface Order {
   minAmountOut: bigint;
   expiry: number;
   nonce: number;
+  authorizedExecutor: string;
 }
 
 export interface PermitWitnessTransferFrom {
@@ -19,7 +20,7 @@ export interface PermitWitnessTransferFrom {
   spender: string;
   nonce: number;
   deadline: number;
-  witness: Order;  // The witness is the Order struct for EIP-712 signing
+  witness: Order; // The witness is the Order struct for EIP-712 signing
 }
 
 interface TokenPermissions {
@@ -28,7 +29,7 @@ interface TokenPermissions {
 }
 
 export interface RouteData {
-  protocol: Protocol; 
+  protocol: Protocol;
   path: string[];
   fee: string; // uint24
   isMultiHop: boolean; // bool
@@ -44,5 +45,5 @@ export enum Protocol {
   PANCAKESWAP_V2 = 5,
   PANCAKESWAP_V3 = 6,
   TRADER_JOE = 7,
-  QUICKSWAP = 8
+  QUICKSWAP = 8,
 }
