@@ -25,8 +25,7 @@ import {
   Trade,
 } from "../src/resources/blockchain/smartcontracts/executor/executor-types";
 import { PermitWitnessTransferFrom } from "../src/resources/blockchain/smartcontracts/permit2/permit2-types";
-import { decodeLogs } from "../lib/log-decoder";
-import { decodeError } from "../src/resources/blockchain/lib/decoding-utils";
+import { decodeLogs, decodeError } from "../src/resources/blockchain/lib/decoding-utils";
 
 async function executorInteraction() {
   /**
