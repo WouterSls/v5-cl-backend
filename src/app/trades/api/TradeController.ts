@@ -11,7 +11,6 @@ import {
   QuoteTradeExecutionResponse,
 } from "../../../resources/generated/types";
 
-import { validateCreateTradeExecutionRequest, validateTradeExecutionId } from "./TradeControllerValidation";
 
 //import { TradeReceptionService } from "../TradeReceptionService";
 //import { TradeExecutionService } from "../service/TradeExecutionService";

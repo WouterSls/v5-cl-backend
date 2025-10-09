@@ -1,5 +1,5 @@
-import { TradeSetupDto, CreateTradeExecutionRequest } from "../../../resources/generated/types";
-import { ValidationError } from "../../../lib/types/error";
+import { TradeSetupDto, CreateTradeExecutionRequest } from "../../../../resources/generated/types";
+import { ValidationError } from "../../../../lib/types/error";
 //import { Wallet as EthersWallet } from "ethers";
 //import { mapNetworkNameToChainType } from "../../resources/blockchain/trading-engine/config/chain-config";
 
