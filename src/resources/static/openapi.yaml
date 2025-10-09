@@ -21,7 +21,7 @@ tags:
 
 paths:
   # Wallets
-  /protected/wallets/{address}/chains/{chainId}/tokenBalances:
+  /protected/wallets/{address}/chains/{chainId}/token-balances:
     get:
       operationId: getWalletTokenBalances
       summary: Get token balances for a wallet address

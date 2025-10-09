@@ -1,4 +1,5 @@
 import { ValidationError } from "../../../../lib/types/error";
+import { TokenDto } from "../../../../resources/generated/types";
 
 export const validateWalletAddress = (address: string | undefined): string => {
   if (!address || typeof address !== "string") {
@@ -42,3 +43,6 @@ export const validateChainId = (chainId: string | undefined): number => {
   return chainIdNum;
 };
 
+export const validateTokenMetadata = (body: any): TokenDto => {
+  throw new Error("NOT IMPLEMENTED");
+}

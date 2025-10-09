@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { allowlistToken, blacklistToken, getWalletTokenBalances } from "./WalletController";
+import { importToken, blacklistToken, getWalletTokenBalances } from "./WalletController";
 
 const walletRouter = Router();
 
-// ADD WALLET HERE OR IN MAIN ROUTER?
-walletRouter.get("/:address/chains/:chainId/tokenBalances", getWalletTokenBalances);
+walletRouter.get("wallets/:address/chains/:chainId/token-balances", getWalletTokenBalances);
 
-walletRouter.post("/:address/allowlist", allowlistToken);
-walletRouter.post("/:address/blacklist", blacklistToken);
+walletRouter.put("wallets/:address/chains/:chainId/import", importToken);
+walletRouter.put("wallets/:address/chains/:chainId/blacklist", blacklistToken);
 
 export { walletRouter };

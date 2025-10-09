@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/protected/wallets/{address}/chains/{chainId}/tokenBalances": {
+    "/protected/wallets/{address}/chains/{chainId}/token-balances": {
         parameters: {
             query?: never;
             header?: never;

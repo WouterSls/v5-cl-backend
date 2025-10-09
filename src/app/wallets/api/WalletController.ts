@@ -4,6 +4,7 @@ import { GetWalletTokenBalancesResponse } from "../../../resources/generated/typ
 import {
   validateWalletAddress,
   validateChainId,
+  validateTokenMetadata,
 } from "./validation/WalletControllerValidation";
 import { WalletService } from "../service/WalletService";
 
@@ -29,6 +30,19 @@ export const getWalletTokenBalances = asyncHandler(async (req: Request, res: Res
     res.status(200).json(successResponse);
 });
 
-export const allowlistToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {});
+export const importToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const address = validateWalletAddress(req.params.address);
+    const chainId = validateChainId(req.params.chainId);
 
-export const blacklistToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {});
+    const tokenMetadata = validateTokenMetadata(req.body);
+
+    //const succesResponse: AllowlistTokenResponse = {}
+});
+
+export const blacklistToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const address = validateWalletAddress(req.params.address);
+    const chainId = validateChainId(req.params.chainId);
+
+
+    //const succesResponse: AllowlistTokenResponse = {}
+});
