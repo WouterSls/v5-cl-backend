@@ -1,7 +1,6 @@
 import logger from "../../../lib/logger/logger";
 
 import { AlchemyApi } from "../../../resources/blockchain/external-apis/alchemy/AlchemyApi";
-import type { Token, WalletTokenBalances } from "../model/Token";
 import {
   UnsupportedChainError,
   BlockchainApiError,
@@ -9,6 +8,7 @@ import {
   AppError,
 } from "../../../lib/types/error";
 import { buildNativeToken, buildTokens } from "../../../lib/utils/token";
+import { TokenDto, WalletTokenBalancesDto } from "../../../resources/generated/types";
 
 export class WalletService {
   private alchemyApi: AlchemyApi;
@@ -20,7 +20,7 @@ export class WalletService {
   async getWalletTokenBalances(
     address: string,
     chainId: number
-  ): Promise<WalletTokenBalances> {
+  ): Promise<WalletTokenBalancesDto> {
     logger.info("Fetching wallet token balances (/wallets/{address}/chains/{chainId})", { address, chainId });
 
     try {
@@ -31,8 +31,8 @@ export class WalletService {
         this.alchemyApi.getTokenBalances(address, chainId),
       ]);
 
-      const nativeToken: Token = buildNativeToken(nativeBalanceHex, chainId);
-      const tokens: Token[] = buildTokens(tokenBalanceData, chainId);
+      const nativeToken: TokenDto = buildNativeToken(nativeBalanceHex, chainId);
+      const tokens: TokenDto[] = buildTokens(tokenBalanceData, chainId);
 
       logger.info("Successfully fetched wallet native and token balances", {
         address,
