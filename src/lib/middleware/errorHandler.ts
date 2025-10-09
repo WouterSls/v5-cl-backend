@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "../types/error";
 import { ErrorResponse } from "../../resources/generated/types";
+import logger from "../logger/logger";
 
 const sendErrorResponse = (res: Response, statusCode: number, code: string, message: string): void => {
   const errorResponse: ErrorResponse = {
@@ -15,11 +16,16 @@ export const errorHandler = (error: Error, req: Request, res: Response, next: Ne
     return next(error);
   }
 
-  console.error("Error occurred:", error.message);
+  const statusCode = error instanceof AppError ? error.statusCode : 500;
+  const errorCode = error instanceof AppError ? error.code : "INTERNAL_ERROR";
 
-  if (process.env.NODE_ENV === "development") {
-    console.error("Stack trace:", error.stack);
-  }
+  logger.error(`${error.message}`, {
+    path: req.path,
+    method: req.method,
+    statusCode,
+    errorCode,
+    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+  });
 
   if (error instanceof AppError) {
     sendErrorResponse(res, error.statusCode, error.code, error.message);

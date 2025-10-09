@@ -1,8 +1,10 @@
 import { components, operations } from "./openapi";
 //import { ChainType } from "../blockchain/trading-engine/config/chain-config";
 
-export type GetWalletBalancesResponse = operations["getWalletBalances"]["responses"]["200"]["content"]["application/json"];
+// Wallet types
+export type GetWalletTokenBalancesResponse = operations["getWalletTokenBalances"]["responses"]["200"]["content"]["application/json"];
 
+// Trade types
 export type CreateTradeExecutionRequest = components["schemas"]["CreateTradeExecutionRequest"];
 export type CreateTradeExecutionResponse =
   operations["createTradeExecution"]["responses"][201]["content"]["application/json"];
@@ -23,7 +25,11 @@ export type GetTradeExecutionPricesResponse =
 
 
 // COMPONENTS
-export type WalletBalancesDto = components["schemas"]["WalletBalancesDto"];
+// Wallet DTOs
+export type TokenDto = components["schemas"]["TokenDto"];
+export type WalletTokenBalancesDto = components["schemas"]["WalletTokenBalancesDto"];
+
+// Trade DTOs
 //export { ChainType };
 export type TradeSetupDto = components["schemas"]["TradeSetupDto"];
 export type TradeExecutionDto = components["schemas"]["TradeExecutionDto"];

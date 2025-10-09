@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/protected/wallets/{address}": {
+    "/protected/wallets/{address}/chains/{chainId}/tokenBalances": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,10 +12,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get all token balances for wallet
-         * @description Retrieve all token balances in TokenBalanceDto objects for a given wallet address
+         * Get token balances for a wallet address
+         * @description Retrieve native token and ERC-20 token balances for a wallet on a specific chain
          */
-        get: operations["getWalletBalances"];
+        get: operations["getWalletTokenBalances"];
         put?: never;
         post?: never;
         delete?: never;
@@ -168,26 +168,34 @@ export interface components {
                 details?: Record<string, never>;
             };
         };
-        WalletBalancesDto: {
-            /** @description The address of the wallet */
-            walletAddress?: string;
-            /** @description The list of all the tokens owned by the address */
-            tokenBalanceList: components["schemas"]["TokenBalanceDto"][];
+        TokenDto: {
+            /** @description Token contract address or 'native' for native token */
+            address: string;
+            /** @description Token symbol (e.g., ETH, USDC) */
+            symbol: string;
+            /** @description Token name (e.g., Ethereum, USD Coin) */
+            name: string;
+            /** @description Token decimals (e.g., 18 for ETH, 6 for USDC) */
+            decimals: number;
+            /** @description Raw balance as string (to handle large numbers) */
+            balance: string;
+            /** @description Human-readable formatted balance (e.g., "1.234567") */
+            balanceFormatted: string;
+            /** @description Token logo URL (if available) */
+            logo?: string | null;
         };
-        TokenBalanceDto: {
-            /** @description the address of the token */
-            address?: string;
-            /** @description the name of the token */
-            name?: string;
-            /** @description the symbol of the token */
-            symbol?: string;
-            /**
-             * Format: double
-             * @description the formatted amount of tokens owned
-             */
-            amountOwned?: number;
-            /** @description boolean value that indicates if this token has a permit2 approval for the user */
-            permit2Approved?: boolean;
+        WalletTokenBalancesDto: {
+            /** @description Native token balance (ETH, MATIC, etc.) */
+            nativeToken: components["schemas"]["TokenDto"];
+            /** @description Array of ERC-20 token balances (filtered for spam/dust) */
+            tokenBalances: components["schemas"]["TokenDto"][];
+        };
+        GetWalletTokenBalancesResponse: components["schemas"]["ApiResponse"] & {
+            data: {
+                /** @example Wallet token balances retrieved successfully */
+                message: string;
+                balances: components["schemas"]["WalletTokenBalancesDto"];
+            };
         };
         TradeSetupDto: {
             /** @description The address of the wallet to trade with */
@@ -435,13 +443,15 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getWalletBalances: {
+    getWalletTokenBalances: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description The address of the wallet for which to retrieve the token balance list */
+                /** @description The wallet address (Ethereum format) */
                 address: string;
+                /** @description The chain ID (1=Ethereum, 8453=Base, 42161=Arbitrum, 10=Optimism, 137=Polygon) */
+                chainId: 1 | 8453 | 42161 | 10 | 137;
             };
             cookie?: never;
         };
@@ -453,15 +463,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponse"] & {
-                        data: {
-                            /** @example Wallets retrieved successfully */
-                            message: string;
-                            walletBalances: components["schemas"]["WalletBalancesDto"][];
-                        };
-                    };
+                    "application/json": components["schemas"]["GetWalletTokenBalancesResponse"];
                 };
             };
+            400: components["responses"]["ValidationError"];
             401: components["responses"]["NotAuthorizedError"];
             500: components["responses"]["InternalServerError"];
         };

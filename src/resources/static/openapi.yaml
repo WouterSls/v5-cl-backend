@@ -21,11 +21,11 @@ tags:
 
 paths:
   # Wallets
-  /protected/wallets/{address}:
+  /protected/wallets/{address}/chains/{chainId}/tokenBalances:
     get:
-      operationId: getWalletBalances
-      summary: Get all token balances for wallet
-      description: Retrieve all token balances in TokenBalanceDto objects for a given wallet address
+      operationId: getWalletTokenBalances
+      summary: Get token balances for a wallet address
+      description: Retrieve native token and ERC-20 token balances for a wallet on a specific chain
       tags:
         - Wallet
       parameters:
@@ -34,32 +34,24 @@ paths:
           required: true
           schema:
             type: string
-          description: The address of the wallet for which to retrieve the token balance list
+            pattern: '^0x[a-fA-F0-9]{40}$'
+          description: The wallet address (Ethereum format)
+        - in: path
+          name: chainId
+          required: true
+          schema:
+            type: integer
+            enum: [1, 8453, 42161, 10, 137]
+          description: The chain ID (1=Ethereum, 8453=Base, 42161=Arbitrum, 10=Optimism, 137=Polygon)
       responses:
         "200":
           description: Wallet token balances retrieved successfully
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          message:
-                            type: string
-                            example: "Wallets retrieved successfully"
-                          walletBalances:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/WalletBalancesDto"
-                        required:
-                          - message
-                          - walletBalances
-                    required:
-                      - data
+                $ref: "#/components/schemas/GetWalletTokenBalancesResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
         "401":
           $ref: "#/components/responses/NotAuthorizedError"
         "500":
@@ -369,40 +361,72 @@ components:
             - error
 
     # DTOs
-    WalletBalancesDto:
+    TokenDto:
       type: object
       properties:
-        walletAddress:
-          type: string
-          description: The address of the wallet
-        tokenBalanceList:
-          type: array
-          items:
-            $ref: '#/components/schemas/TokenBalanceDto' 
-          description: The list of all the tokens owned by the address
-      required:
-        - address
-        - tokenBalanceList
-    TokenBalanceDto:
-      type: object
-      properties:
-        # Chain?
         address:
           type: string
-          description: the address of the token
-        name:
-          type: string
-          description: the name of the token
+          description: Token contract address or 'native' for native token
         symbol:
           type: string
-          description: the symbol of the token
-        amountOwned:
-          type: number
-          format: double
-          description: the formatted amount of tokens owned
-        permit2Approved:
-          type: boolean
-          description: boolean value that indicates if this token has a permit2 approval for the user
+          description: Token symbol (e.g., ETH, USDC)
+        name:
+          type: string
+          description: Token name (e.g., Ethereum, USD Coin)
+        decimals:
+          type: integer
+          description: Token decimals (e.g., 18 for ETH, 6 for USDC)
+        balance:
+          type: string
+          description: Raw balance as string (to handle large numbers)
+        balanceFormatted:
+          type: string
+          description: Human-readable formatted balance (e.g., "1.234567")
+        logo:
+          type: string
+          nullable: true
+          description: Token logo URL (if available)
+      required:
+        - address
+        - symbol
+        - name
+        - decimals
+        - balance
+        - balanceFormatted
+
+    WalletTokenBalancesDto:
+      type: object
+      properties:
+        nativeToken:
+          $ref: '#/components/schemas/TokenDto'
+          description: Native token balance (ETH, MATIC, etc.)
+        tokenBalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TokenDto'
+          description: Array of ERC-20 token balances (filtered for spam/dust)
+      required:
+        - nativeToken
+        - tokenBalances
+
+    GetWalletTokenBalancesResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Wallet token balances retrieved successfully"
+                balances:
+                  $ref: '#/components/schemas/WalletTokenBalancesDto'
+              required:
+                - message
+                - balances
+          required:
+            - data
     
     TradeSetupDto:
       type: object

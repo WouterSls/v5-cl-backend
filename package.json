@@ -8,8 +8,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx tsc && npx nodemon js-build/src/server.js",
-    "generate": "rm -rf js-build/src/resources/static && mkdir -p js-build/src/resources/static && cp src/resources/static/openapi.yaml js-build/src/resources/static && npx openapi-typescript ./src/resources/static/openapi.yaml -o ./src/resources/generated/openapi.ts"
+    "build": "npx tsc && cp -r src/resources/blockchain/external-apis/yearn/data/*.json js-build/src/resources/blockchain/external-apis/yearn/data/",
+    "dev": "npm run build && npx nodemon js-build/src/server.js",
+    "generate": "rm -rf js-build/src/resources/static && mkdir -p js-build/src/resources/static && cp src/resources/static/openapi.yaml js-build/src/resources/static && npx openapi-typescript ./src/resources/static/openapi.yaml -o ./src/resources/generated/openapi.ts",
+    "update-tokens": "curl -k -o src/resources/blockchain/external-apis/yearn/data/1-tokens.json https://raw.githubusercontent.com/yearn/tokenLists/main/lists/1.json && curl -k -o src/resources/blockchain/external-apis/yearn/data/8453-tokens.json https://raw.githubusercontent.com/yearn/tokenLists/main/lists/8453.json"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -17,7 +19,8 @@
     "ethers": "^6.15.0",
     "express": "^5.1.0",
     "js-yaml": "^4.1.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

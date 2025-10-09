@@ -17,7 +17,7 @@ import { Router } from "express";
 import { errorHandler } from "./lib/middleware/errorHandler";
 //import { authMiddleware } from "./lib/middleware/auth";
 
-//import { walletRouter } from "./app/wallets/api/WalletRouter";
+import { walletRouter } from "./app/wallets/api/WalletRouter";
 import { tradeRouter } from "./app/trades/api/TradeRouter";
 
 const app = express();
@@ -37,9 +37,10 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // API ROUTES
+// Add rate limit middleware, etc..
 const protectedRouter = Router();
 //protectedRouter.use(authMiddleware);
-//protectedRouter.use(walletRouter);
+protectedRouter.use("/wallets", walletRouter);
 protectedRouter.use(tradeRouter);
 
 app.use("/api/protected", protectedRouter);
