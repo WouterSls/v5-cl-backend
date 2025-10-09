@@ -9,12 +9,15 @@ import {
 } from "../../../lib/types/error";
 import { buildNativeToken, buildTokens } from "../../../lib/utils/token";
 import { TokenDto, WalletTokenBalancesDto } from "../../../resources/generated/types";
+import { InsertToken, TokenRepository } from "../db/TokenRepository";
 
 export class WalletService {
   private alchemyApi: AlchemyApi;
+  private tokenRepo: TokenRepository;
 
-  constructor(alchemyApi?: AlchemyApi) {
+  constructor(alchemyApi?: AlchemyApi, tokenRepo?: TokenRepository) {
     this.alchemyApi = alchemyApi || new AlchemyApi();
+    this.tokenRepo = tokenRepo || TokenRepository.getInstance();
   }
 
   async getWalletTokenBalances(
@@ -24,8 +27,6 @@ export class WalletService {
     logger.info("Fetching wallet token balances (/wallets/{address}/chains/{chainId})", { address, chainId });
 
     try {
-      this.validateInputs(address, chainId);
-
       const [nativeBalanceHex, tokenBalanceData] = await Promise.all([
         this.alchemyApi.getNativeBalance(address, chainId),
         this.alchemyApi.getTokenBalances(address, chainId),
@@ -56,14 +57,13 @@ export class WalletService {
     }
   }
 
-  private validateInputs(address: string, chainId: number): void {
-    if (!address || !chainId) {
-      throw new ValidationError("Address and chainId are required");
-    }
+  async importToken(walletAddress: string, chainId: number, token: TokenDto) {
+    const newToken: InsertToken = {isBlacklist: false}; 
+    await this.tokenRepo.createToken(newToken);
+  }
 
-    if (!this.alchemyApi.isChainSupported(chainId)) {
-      throw new UnsupportedChainError(chainId);
-    }
+  async blacklistToken() {
+    await this.tokenRepo.updateToken(/**isBlacklist = true */)
   }
 }
 

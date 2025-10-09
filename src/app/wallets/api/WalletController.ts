@@ -36,13 +36,12 @@ export const importToken = asyncHandler(async (req: Request, res: Response): Pro
 
     const tokenMetadata = validateTokenMetadata(req.body);
 
-    //const succesResponse: AllowlistTokenResponse = {}
+    //const succesResponse: ImportTokenResponse = {}
 });
 
 export const blacklistToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const address = validateWalletAddress(req.params.address);
     const chainId = validateChainId(req.params.chainId);
 
-
-    //const succesResponse: AllowlistTokenResponse = {}
+    //const succesResponse: BlacklistTokenResponse = {}
 });

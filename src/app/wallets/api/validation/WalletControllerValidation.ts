@@ -1,4 +1,4 @@
-import { ValidationError } from "../../../../lib/types/error";
+import { UnsupportedChainError, ValidationError } from "../../../../lib/types/error";
 import { TokenDto } from "../../../../resources/generated/types";
 
 export const validateWalletAddress = (address: string | undefined): string => {
@@ -35,9 +35,7 @@ export const validateChainId = (chainId: string | undefined): number => {
   const supportedChainIds = [ETH, BASE];
 
   if (!supportedChainIds.includes(chainIdNum)) {
-    throw new ValidationError(
-      `Unsupported chainId: ${chainIdNum}. Supported chains: 1 (Ethereum), 8453 (Base)`
-    );
+    throw new UnsupportedChainError(chainIdNum);
   }
 
   return chainIdNum;
