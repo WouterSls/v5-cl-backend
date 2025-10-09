@@ -40,7 +40,7 @@ if (process.env.NODE_ENV === "development") {
 // Add rate limit middleware, etc..
 const protectedRouter = Router();
 //protectedRouter.use(authMiddleware);
-protectedRouter.use("/wallets", walletRouter);
+protectedRouter.use(walletRouter);
 protectedRouter.use(tradeRouter);
 
 app.use("/api/protected", protectedRouter);

@@ -1,8 +1,8 @@
 import { formatUnits } from "ethers";
-import { Token } from "../../app/wallets/model/Token";
 import { AlchemyTokenBalancesResponse, TokenBalance } from "../../resources/blockchain/external-apis/alchemy/alchemy-api.types";
 import { getYearnTokenMetadata, isTokenInYearnList } from "../../resources/blockchain/external-apis/yearn/yearn-utils";
 import logger from "../logger/logger";
+import { TokenDto } from "../../resources/generated/types";
 
 const DUST_THRESHOLD = 0.000001;
 
@@ -29,7 +29,7 @@ const DEFAULT_TOKEN_DECIMALS = 18;
 const DEFAULT_TOKEN_SYMBOL = "UNKNOWN";
 const DEFAULT_TOKEN_NAME = "Unknown Token";
 
-export function buildNativeToken(nativeBalanceHex: string, chainId: number): Token {
+export function buildNativeToken(nativeBalanceHex: string, chainId: number): TokenDto {
     const nativeTokenInfo = NATIVE_TOKENS[chainId];
     const nativeBalanceBigInt = BigInt(nativeBalanceHex);
     const nativeBalanceFormatted = formatUnits(
@@ -47,7 +47,7 @@ export function buildNativeToken(nativeBalanceHex: string, chainId: number): Tok
     };
   }
 
-export function buildTokens(alchemyResponseData: AlchemyTokenBalancesResponse, chainId: number): Token[] {
+export function buildTokens(alchemyResponseData: AlchemyTokenBalancesResponse, chainId: number): TokenDto[] {
     const nonZeroTokens: TokenBalance[] = filterAndConvertAlchemyResponse(alchemyResponseData);
     logger.debug("Found non-zero tokens", {
         count: nonZeroTokens.length,
@@ -82,7 +82,7 @@ function filterAndConvertAlchemyResponse(tokenBalancesData: AlchemyTokenBalances
     );
 }
 
-function filterSpamAndDust(tokens: Token[]): Token[] {
+function filterSpamAndDust(tokens: TokenDto[]): TokenDto[] {
     return tokens.filter((token) => {
         const isNotDust = parseFloat(token.balanceFormatted) >= DUST_THRESHOLD;
         const tokenText = `${token.name} ${token.symbol}`.toLowerCase();
@@ -95,7 +95,7 @@ function filterSpamAndDust(tokens: Token[]): Token[] {
 function enrichTokensWithMetadata(
     tokenBalances: TokenBalance[],
     chainId: number
-): Token[] {
+): TokenDto[] {
     logger.debug("Enriching tokens with metadata", {
         tokenCount: tokenBalances.length,
         chainId,
@@ -106,7 +106,7 @@ function enrichTokensWithMetadata(
         buildTokenWithMetadata(tokenBalance, chainId)
     );
 
-    const validTokens = allTokens.filter((token): token is Token => token !== null);
+    const validTokens = allTokens.filter((token): token is TokenDto => token !== null);
 
     logger.debug("Enriched tokens with metadata", {
         total: tokenBalances.length,
@@ -120,7 +120,7 @@ function enrichTokensWithMetadata(
 function buildTokenWithMetadata(
     tokenBalance: TokenBalance,
     chainId: number
-): Token | null {
+): TokenDto | null {
     try {
         const balanceBigInt = BigInt(tokenBalance.tokenBalance);
         
@@ -169,7 +169,7 @@ function buildTokenWithMetadata(
     }
 }
 
-function filterTokensByYearnList(tokens: Token[], chainId: number): Token[] {
+function filterTokensByYearnList(tokens: TokenDto[], chainId: number): TokenDto[] {
     const initialCount = tokens.length;
     
     const validTokens = tokens.filter((token) =>
