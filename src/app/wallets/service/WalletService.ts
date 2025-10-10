@@ -5,7 +5,7 @@ import {
   BlockchainApiError,
   AppError,
 } from "../../../lib/types/error";
-import { buildNativeToken, buildTokensFromAlchemyData, buildTokensFromSelectTokens } from "../../../lib/utils/token";
+import { buildNativeToken, buildTokensFromTokenBalances, buildTokensFromSelectTokens } from "../../../lib/utils/token";
 import { TokenDto, WalletTokenBalancesDto } from "../../../resources/generated/types";
 import { TokenRepository, TokenMetadata } from "../db/TokenRepository";
 import { InsertToken, SelectToken } from "../../../resources/db/schema";
@@ -29,15 +29,18 @@ export class WalletService {
     });
 
     try {
-      const [nativeBalanceHex, tokenBalanceData, importedSelectTokens] = await Promise.all([
+      const [nativeBalanceHex, tokenBalanceData/**, importedSelectTokens */] = await Promise.all([
         this.alchemyApi.getNativeBalance(address, chainId),
         this.alchemyApi.getTokenBalances(address, chainId),
-        this.tokenRepo.getImportedTokens(address, chainId),
+        //this.tokenRepo.getImportedTokens(address, chainId),
       ]);
 
       const nativeToken: TokenDto = buildNativeToken(nativeBalanceHex, chainId);
-      const tokens: TokenDto[] = buildTokensFromAlchemyData(tokenBalanceData, chainId);
-      const importedTokens: TokenDto[] = await buildTokensFromSelectTokens(importedSelectTokens);
+
+      // filter blacklist
+      // add imported (get balance for )
+      const tokens: TokenDto[] = buildTokensFromTokenBalances(tokenBalanceData, chainId);
+      //const importedTokens: TokenDto[] = await buildTokensFromSelectTokens(importedSelectTokens);
 
       logger.info("Successfully fetched wallet token balances with user preferences", {
         address,

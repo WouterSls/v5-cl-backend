@@ -1,22 +1,18 @@
-import type {
-  AlchemyTokenBalancesResponse,
-  AlchemyTokenMetadataResponse,
-} from "./alchemy-api.types";
 import logger from "../../../../lib/logger/logger";
 
-// Chain ID to Alchemy network mapping
+import type {
+  AlchemyTokenBalancesResponse,
+  TokenBalance,
+} from "./alchemy-api.types";
+
 const ALCHEMY_NETWORKS: Record<number, string> = {
   1: "eth-mainnet",
   8453: "base-mainnet",
-  137: "polygon-mainnet",
-  10: "opt-mainnet",
-  42161: "arb-mainnet",
+  //137: "polygon-mainnet",
+  //10: "opt-mainnet",
+  //42161: "arb-mainnet",
 };
 
-/**
- * AlchemyApi handles all direct API calls to Alchemy
- * Pure API client - no business logic
- */
 export class AlchemyApi {
   private apiKey: string;
 
@@ -28,9 +24,45 @@ export class AlchemyApi {
     }
   }
 
-  /**
-   * Get the Alchemy API URL for a specific chain
-   */
+  async getTokenBalances(
+    address: string,
+    chainId: number
+  ): Promise<TokenBalance[]> {
+    const allTokenBalances: TokenBalance[] = [];
+
+    let pageKey: string | undefined;
+    do {
+      const params: unknown[] = [
+        address,
+        "erc20",
+        pageKey ? { pageKey } : {},
+      ];
+
+      const response = await this.makeJsonRpcCall<AlchemyTokenBalancesResponse>(
+        chainId,
+        "alchemy_getTokenBalances",
+        params,
+        { address, pageKey: pageKey || "initial" }
+      );
+
+      const nonZeroTokens = this.filterNonZeroTokens(response.tokenBalances);
+      allTokenBalances.push(...nonZeroTokens);
+
+      pageKey = response.pageKey;
+    } while (pageKey);
+
+    return allTokenBalances;
+  }
+
+  async getNativeBalance(address: string, chainId: number): Promise<string> {
+    return this.makeJsonRpcCall<string>(
+      chainId,
+      "eth_getBalance",
+      [address, "latest"],
+      { address }
+    );
+  }
+
   private getAlchemyUrl(chainId: number): string {
     const network = ALCHEMY_NETWORKS[chainId];
 
@@ -41,23 +73,15 @@ export class AlchemyApi {
     return `https://${network}.g.alchemy.com/v2/${this.apiKey}`;
   }
 
-  /**
-   * Check if a chain is supported
-   */
-  isChainSupported(chainId: number): boolean {
-    return chainId in ALCHEMY_NETWORKS;
-  }
-
-  /**
-   * Fetch token balances from Alchemy API
-   */
-  async getTokenBalances(
-    address: string,
-    chainId: number
-  ): Promise<AlchemyTokenBalancesResponse> {
-    logger.debug("Calling Alchemy API: getTokenBalances", { address, chainId });
-    
+  private async makeJsonRpcCall<T>(
+    chainId: number,
+    method: string,
+    params: unknown[],
+    logContext: Record<string, unknown> = {}
+  ): Promise<T> {
     const url = this.getAlchemyUrl(chainId);
+
+    logger.debug(`Calling Alchemy API: ${method}`, { chainId, ...logContext });
 
     try {
       const response = await fetch(url, {
@@ -67,19 +91,19 @@ export class AlchemyApi {
         },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          method: "alchemy_getTokenBalances",
-          params: [address],
+          method,
+          params,
           id: 1,
         }),
       });
 
       if (!response.ok) {
         logger.error("Alchemy API HTTP error", {
-          method: "getTokenBalances",
-          address,
+          method,
           chainId,
           status: response.status,
           statusText: response.statusText,
+          ...logContext,
         });
         throw new Error(`Alchemy API error: ${response.statusText}`);
       }
@@ -88,171 +112,41 @@ export class AlchemyApi {
 
       if (data.error) {
         logger.error("Alchemy API returned error", {
-          method: "getTokenBalances",
-          address,
+          method,
           chainId,
           errorMessage: data.error.message,
+          ...logContext,
         });
         throw new Error(`Alchemy API error: ${data.error.message}`);
       }
 
-      logger.debug("Successfully fetched token balances from Alchemy", {
-        address,
+      logger.debug(`Successfully called Alchemy API: ${method}`, {
         chainId,
-        tokenCount: data.result?.tokenBalances?.length || 0,
+        ...logContext,
       });
 
-      return data.result;
+      return data.result as T;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Alchemy API error")) {
         throw error;
       }
-      
+
       logger.error("Network error calling Alchemy API", {
-        method: "getTokenBalances",
-        address,
+        method,
         chainId,
         error: error instanceof Error ? error.message : String(error),
+        ...logContext,
       });
       throw error;
     }
   }
 
-  /**
-   * Fetch token metadata from Alchemy API
-   */
-  async getTokenMetadata(
-    contractAddress: string,
-    chainId: number
-  ): Promise<AlchemyTokenMetadataResponse> {
-    logger.debug("Calling Alchemy API: getTokenMetadata", { contractAddress, chainId });
-    
-    const url = this.getAlchemyUrl(chainId);
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "alchemy_getTokenMetadata",
-          params: [contractAddress],
-          id: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        logger.error("Alchemy API HTTP error", {
-          method: "getTokenMetadata",
-          contractAddress,
-          chainId,
-          status: response.status,
-          statusText: response.statusText,
-        });
-        throw new Error(`Alchemy API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        logger.error("Alchemy API returned error", {
-          method: "getTokenMetadata",
-          contractAddress,
-          chainId,
-          errorMessage: data.error.message,
-        });
-        throw new Error(`Alchemy API error: ${data.error.message}`);
-      }
-
-      logger.debug("Successfully fetched token metadata from Alchemy", {
-        contractAddress,
-        chainId,
-        symbol: data.result?.symbol,
-        name: data.result?.name,
-      });
-
-      return data.result;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("Alchemy API error")) {
-        throw error;
-      }
-      
-      logger.error("Network error calling Alchemy API", {
-        method: "getTokenMetadata",
-        contractAddress,
-        chainId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch native token balance (ETH, MATIC, etc.)
-   */
-  async getNativeBalance(address: string, chainId: number): Promise<string> {
-    logger.debug("Calling Alchemy API: getNativeBalance", { address, chainId });
-    
-    const url = this.getAlchemyUrl(chainId);
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_getBalance",
-          params: [address, "latest"],
-          id: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        logger.error("Alchemy API HTTP error", {
-          method: "getNativeBalance",
-          address,
-          chainId,
-          status: response.status,
-          statusText: response.statusText,
-        });
-        throw new Error(`Alchemy API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        logger.error("Alchemy API returned error", {
-          method: "getNativeBalance",
-          address,
-          chainId,
-          errorMessage: data.error.message,
-        });
-        throw new Error(`Alchemy API error: ${data.error.message}`);
-      }
-
-      logger.debug("Successfully fetched native balance from Alchemy", {
-        address,
-        chainId,
-        balance: data.result,
-      });
-
-      return data.result;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("Alchemy API error")) {
-        throw error;
-      }
-      
-      logger.error("Network error calling Alchemy API", {
-        method: "getNativeBalance",
-        address,
-        chainId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
+  private filterNonZeroTokens(tokens: TokenBalance[]): TokenBalance[] {
+    return tokens.filter(
+      (token) =>
+        !token.error &&
+        token.tokenBalance !== "0" &&
+        token.tokenBalance !== "0x0"
+    );
   }
 }

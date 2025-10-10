@@ -12,6 +12,7 @@ export interface TokenBalance {
 export interface AlchemyTokenBalancesResponse {
   address: string;
   tokenBalances: TokenBalance[];
+  pageKey?: string;
 }
 
 export interface AlchemyTokenMetadataResponse {
