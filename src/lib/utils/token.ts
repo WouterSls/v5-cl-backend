@@ -3,6 +3,7 @@ import { AlchemyTokenBalancesResponse, TokenBalance } from "../../resources/bloc
 import { getYearnTokenMetadata, isTokenInYearnList } from "../../resources/blockchain/external-apis/yearn/yearn-utils";
 import logger from "../logger/logger";
 import { TokenDto } from "../../resources/generated/types";
+import { SelectToken } from "../../resources/db/schema";
 
 const DUST_THRESHOLD = 0.000001;
 
@@ -47,7 +48,7 @@ export function buildNativeToken(nativeBalanceHex: string, chainId: number): Tok
     };
   }
 
-export function buildTokens(alchemyResponseData: AlchemyTokenBalancesResponse, chainId: number): TokenDto[] {
+export function buildTokensFromAlchemyData(alchemyResponseData: AlchemyTokenBalancesResponse, chainId: number): TokenDto[] {
     const nonZeroTokens: TokenBalance[] = filterAndConvertAlchemyResponse(alchemyResponseData);
     logger.debug("Found non-zero tokens", {
         count: nonZeroTokens.length,
@@ -71,6 +72,10 @@ export function buildTokens(alchemyResponseData: AlchemyTokenBalancesResponse, c
     });
 
     return tokens;
+}
+
+export async function buildTokensFromSelectTokens(importedSelectTokens:SelectToken[]): Promise<TokenDto[]>{
+    return [];
 }
 
 function filterAndConvertAlchemyResponse(tokenBalancesData: AlchemyTokenBalancesResponse): TokenBalance[] {
