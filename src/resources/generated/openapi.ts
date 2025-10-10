@@ -450,8 +450,8 @@ export interface operations {
             path: {
                 /** @description The wallet address (Ethereum format) */
                 address: string;
-                /** @description The chain ID (1=Ethereum, 8453=Base, 42161=Arbitrum, 10=Optimism, 137=Polygon) */
-                chainId: 1 | 8453 | 42161 | 10 | 137;
+                /** @description The chain ID (1=Ethereum, 8453=Base) */
+                chainId: 1 | 8453;
             };
             cookie?: never;
         };
