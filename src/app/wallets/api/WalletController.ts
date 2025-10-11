@@ -7,8 +7,10 @@ import {
   validateTokenMetadata,
 } from "./validation/WalletControllerValidation";
 import { WalletService } from "../service/WalletService";
+import { TokenService } from "../service/TokenService";
 
 const walletService = new WalletService();
+const tokenService = new TokenService();
 
 export const getWalletTokenBalances = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const address = validateWalletAddress(req.params.address);

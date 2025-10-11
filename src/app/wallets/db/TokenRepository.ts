@@ -52,6 +52,29 @@ export class TokenRepository {
     }
   }
 
+  async getTokens(
+    walletAddress: string,
+    chainId: number,
+  ): Promise<SelectToken[]> {
+    try {
+      const result = await db
+        .select()
+        .from(token)
+        .where(
+          and(
+            eq(token.walletAddress, walletAddress),
+            eq(token.chainId, chainId),
+          )
+        )
+
+      return result;
+    } catch (error: unknown) {
+      console.error("Error getting token", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      throw new TechnicalError(`Error getting token: ${errorMessage}`);
+    }
+  }
+
   async getImportedTokens(
     walletAddress: string,
     chainId: number,
@@ -75,6 +98,11 @@ export class TokenRepository {
       throw new TechnicalError(`Error getting token: ${errorMessage}`);
     }
   }
+
+  async getBlacklistedTokens() {
+
+  }
+
   async createToken(newToken: InsertToken): Promise<SelectToken> {
     try {
       const result = await db.insert(token).values(newToken).returning();

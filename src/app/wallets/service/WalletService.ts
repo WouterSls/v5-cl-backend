@@ -5,18 +5,17 @@ import {
   BlockchainApiError,
   AppError,
 } from "../../../lib/types/error";
-import { buildNativeToken, buildTokensFromTokenBalances, buildTokensFromSelectTokens } from "../../../lib/utils/token";
+import { buildNativeToken, buildTokens } from "../../../lib/utils/token";
 import { TokenDto, WalletTokenBalancesDto } from "../../../resources/generated/types";
-import { TokenRepository, TokenMetadata } from "../db/TokenRepository";
-import { InsertToken, SelectToken } from "../../../resources/db/schema";
+import { TokenService } from "./TokenService";
 
 export class WalletService {
   private alchemyApi: AlchemyApi;
-  private tokenRepo: TokenRepository;
+  private tokenService: TokenService;
 
-  constructor(alchemyApi?: AlchemyApi, tokenRepo?: TokenRepository) {
+  constructor(alchemyApi?: AlchemyApi, tokenService?: TokenService) {
     this.alchemyApi = alchemyApi || new AlchemyApi();
-    this.tokenRepo = tokenRepo || TokenRepository.getInstance();
+    this.tokenService = tokenService || new TokenService();
   }
 
   async getWalletTokenBalances(
@@ -29,25 +28,20 @@ export class WalletService {
     });
 
     try {
-      const [nativeBalanceHex, tokenBalanceData/**, importedSelectTokens */] = await Promise.all([
+      const [nativeBalanceHex, tokenBalanceData, importedTokens, blacklistedAddresses] = await Promise.all([
         this.alchemyApi.getNativeBalance(address, chainId),
         this.alchemyApi.getTokenBalances(address, chainId),
-        //this.tokenRepo.getImportedTokens(address, chainId),
+        this.tokenService.getImportedTokens(address, chainId),
+        this.tokenService.getBlacklistedAddresses(address, chainId)
       ]);
 
       const nativeToken: TokenDto = buildNativeToken(nativeBalanceHex, chainId);
-
-      // filter blacklist
-      // add imported (get balance for )
-      const tokens: TokenDto[] = buildTokensFromTokenBalances(tokenBalanceData, chainId);
-      //const importedTokens: TokenDto[] = await buildTokensFromSelectTokens(importedSelectTokens);
+      const tokens: TokenDto[] = buildTokens(tokenBalanceData, chainId, importedTokens, blacklistedAddresses);
 
       logger.info("Successfully fetched wallet token balances with user preferences", {
         address,
         chainId,
-        defaultTokenCount: tokens.length,
-        //finalTokenCount: finalTokens.length,
-        //preferencesCount: userPreferences.length,
+        tokenCount: tokens.length,
       });
 
       return {
@@ -61,83 +55,6 @@ export class WalletService {
 
       throw new BlockchainApiError("getWalletTokenBalances", error as Error);
     }
-  }
-
-  async importToken(
-    walletAddress: string,
-    chainId: number,
-    tokenData: TokenDto
-  ): Promise<SelectToken> {
-    logger.info("Importing token", {
-      walletAddress,
-      chainId,
-      tokenAddress: tokenData.address
-    });
-
-    const existingToken = await this.tokenRepo.getToken(
-      walletAddress,
-      chainId,
-      tokenData.address
-    );
-
-    if (!existingToken) {
-      const metadata: TokenMetadata = {
-        symbol: tokenData.symbol,
-        name: tokenData.name,
-        decimals: tokenData.decimals,
-        logo: tokenData.logo || null,
-      };
-
-      const newToken: InsertToken = {
-        walletAddress,
-        chainId,
-        tokenAddress: tokenData.address,
-        status: "IMPORT",
-        symbol: metadata.symbol,
-        name: metadata.name,
-        decimals: metadata.decimals,
-        logo: metadata.logo,
-      }
-
-      return await this.tokenRepo.createToken(newToken);
-    }
-
-    return await this.tokenRepo.updateToken(walletAddress,chainId,tokenData.address,{status: "IMPORT"});
-  }
-
-  async blacklistToken(
-    walletAddress: string,
-    chainId: number,
-    tokenAddress: string,
-    tokenData?: TokenDto
-  ): Promise<SelectToken> {
-    logger.info("Blacklisting token", {
-      walletAddress,
-      chainId,
-      tokenAddress
-    });
-
-    const existingToken = await this.tokenRepo.getToken(
-      walletAddress,
-      chainId,
-      tokenAddress
-    );
-
-    if (!existingToken) {
-      const newToken: InsertToken = {
-        walletAddress,
-        chainId,
-        tokenAddress,
-        status: "BLACKLIST",
-        symbol: tokenData?.symbol || null,
-        name: tokenData?.name || null,
-        decimals: tokenData?.decimals || null,
-        logo: tokenData?.logo || null,
-      }
-      return await this.tokenRepo.createToken(newToken);
-    }
-
-    return await this.tokenRepo.updateToken(walletAddress, chainId, tokenAddress, {status: "BLACKLIST"});
   }
 }
 
