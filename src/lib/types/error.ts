@@ -61,13 +61,3 @@ export class BlockchainApiError extends AppError {
     super(500, "BLOCKCHAIN_API_ERROR", message);
   }
 }
-
-export class TokenMetadataError extends AppError {
-  constructor(tokenAddress: string, chainId: number) {
-    super(
-      500,
-      "TOKEN_METADATA_ERROR",
-      `Failed to fetch metadata for token ${tokenAddress} on chain ${chainId}`
-    );
-  }
-}
