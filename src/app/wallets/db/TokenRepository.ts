@@ -75,9 +75,10 @@ export class TokenRepository {
     }
   }
 
-  async getImportedTokens(
+  async getTokensByStatus(
     walletAddress: string,
     chainId: number,
+    status: "IMPORT" | "BLACKLIST"
   ): Promise<SelectToken[]> {
     try {
       const result = await db
@@ -87,7 +88,7 @@ export class TokenRepository {
           and(
             eq(token.walletAddress, walletAddress),
             eq(token.chainId, chainId),
-            eq(token.status, "IMPORT")
+            eq(token.status, status)
           )
         )
 
@@ -97,10 +98,6 @@ export class TokenRepository {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       throw new TechnicalError(`Error getting token: ${errorMessage}`);
     }
-  }
-
-  async getBlacklistedTokens() {
-
   }
 
   async createToken(newToken: InsertToken): Promise<SelectToken> {
