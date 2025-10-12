@@ -1,20 +1,27 @@
 import { ethers } from "ethers";
 
-export class ImportedToken {
-    constructor(
-        private address: string,
-        private name: string,
-        private symbol: string,
-        private decimals: number,
-        private balance: string,
-        private logoUri: string
-    ) {}
+export interface ImportedToken {
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    balance: string;
+    balanceFormatted: string;
+}
 
-    getAddress = () => this.address; 
-    getName = () => this.name;
-    getSymbol = () => this.symbol;
-    getDecimals = () => this.decimals;
-    getBalance = () => this.balance;
-    getBalanceFormatted = () => ethers.formatUnits(this.balance, this.decimals);
-    getLogo = () => this.logoUri;
+export function createImportedToken(
+    address: string,
+    name: string,
+    symbol: string,
+    decimals: number,
+    balance: string
+): ImportedToken {
+    return {
+        address,
+        name,
+        symbol,
+        decimals,
+        balance,
+        balanceFormatted: ethers.formatUnits(balance, decimals)
+    };
 }
