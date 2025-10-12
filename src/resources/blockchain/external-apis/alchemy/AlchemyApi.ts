@@ -1,3 +1,4 @@
+import { JsonRpcProvider } from "ethers";
 import logger from "../../../../lib/logger/logger";
 
 import type {
@@ -22,6 +23,11 @@ export class AlchemyApi {
     if (!this.apiKey) {
       throw new Error("ALCHEMY_API_KEY is required");
     }
+  }
+
+  getEthersProvider(chainId: number): JsonRpcProvider {
+    const rpcUrl = this.getAlchemyUrl(chainId);
+    return new JsonRpcProvider(rpcUrl);
   }
 
   async getTokenBalances(
