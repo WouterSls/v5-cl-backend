@@ -2,7 +2,7 @@ import { pgTable, serial, text, integer, timestamp, unique, pgEnum } from "drizz
 
 export const tokenStatusEnum = pgEnum("status_type", ["IMPORT", "BLACKLIST"]);
 
-export const token = pgTable("token_preference", {
+export const token = pgTable("token", {
   id: serial("id").primaryKey(),
   walletAddress: text("wallet_address").notNull(),
   tokenAddress: text("token_address").notNull(),
