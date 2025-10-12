@@ -7,7 +7,9 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "build": "npx tsc && cp -r src/resources/blockchain/external-apis/yearn/data/*.json js-build/src/resources/blockchain/external-apis/yearn/data/",
     "dev": "npm run build && npx nodemon js-build/src/server.js",
     "generate": "rm -rf js-build/src/resources/static && mkdir -p js-build/src/resources/static && cp src/resources/static/openapi.yaml js-build/src/resources/static && npx openapi-typescript ./src/resources/static/openapi.yaml -o ./src/resources/generated/openapi.ts",
@@ -27,10 +29,13 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/swagger-ui-express": "^4.1.8",
     "drizzle-kit": "^0.31.4",
+    "jest": "^30.2.0",
     "openapi-typescript": "^7.9.1",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.9.2"
   },
   "overrides": {
