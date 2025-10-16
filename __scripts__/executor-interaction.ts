@@ -121,7 +121,7 @@ async function executorInteraction() {
     minAmountOut: 0n,
     expiry: deadline,
     nonce: orderNonce,
-    authorizedExecutor: relayer.address,
+    authorizedExecutor: ethers.ZeroAddress //-> currently all traders, extra secured would be relayer.address,
   };
 
   const permit: PermitWitnessTransferFrom = {
