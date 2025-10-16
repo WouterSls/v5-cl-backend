@@ -10,6 +10,7 @@ import {
   QuoteDto,
   QuoteTradeExecutionResponse,
 } from "../../../resources/generated/types";
+import logger from "../../../lib/logger/logger";
 
 
 //import { TradeReceptionService } from "../TradeReceptionService";
@@ -56,6 +57,7 @@ export const quoteTradeExecution = asyncHandler(async (req: Request, res: Respon
 });
 
 export const getTradeExecutions = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  logger.debug("get trade executions endpoint hit")
   /**
   const tradeExecutions = await tradeExecutionService.getTradeExecutions();
   const tradeExecutionDtos = TradeExecutionMapper.toTradeExecutionDtos(tradeExecutions);
@@ -73,6 +75,7 @@ export const getTradeExecutions = asyncHandler(async (req: Request, res: Respons
 });
 
 export const createTradeExecution = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  logger.debug("create trade execution endpoint hit")
   /**
   const requestBody: CreateTradeExecutionRequest = req.body;
 
