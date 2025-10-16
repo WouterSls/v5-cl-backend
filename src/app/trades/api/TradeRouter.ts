@@ -12,14 +12,14 @@ import {
 
 const tradeRouter = Router();
 
-tradeRouter.get("/tradeExecutions", getTradeExecutions);
-tradeRouter.get("/tradeConfirmations", getTradeConfirmations);
-tradeRouter.get("/tradeErrors", getTradeErrors);
+tradeRouter.get("/trade-executions", getTradeExecutions);
+tradeRouter.get("/trade-confirmations", getTradeConfirmations);
+tradeRouter.get("/trade-errors", getTradeErrors);
 
-tradeRouter.post("/tradeExecutions", createTradeExecution);
-tradeRouter.put("/tradeExecutions/:id", cancelTradeExecution);
+tradeRouter.post("/trade-executions", createTradeExecution);
+tradeRouter.put("/trade-executions/:id", cancelTradeExecution);
 
-tradeRouter.get("/tradeExecutions/prices", getTradeExecutionsPrices);
+tradeRouter.get("/trade-executions/prices", getTradeExecutionsPrices);
 tradeRouter.post("/quotes", quoteTradeExecution);
 
 
