@@ -11,6 +11,6 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "types": ["jest", "node"] /* Include type definitions for Jest */
   },
-  "include": ["src/**/*", "__tests__/**/*"],
+  "include": ["src/**/*", "__scripts__/**/*"],
   "exclude": ["node_modules", "js-build"]
 }
