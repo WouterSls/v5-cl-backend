@@ -1,10 +1,8 @@
-import { eq, and } from "drizzle-orm";
 import { NotFoundError, TechnicalError } from "../../../lib/types/error";
-import { db } from "../../../resources/db/db";
+import { supabase } from "../../../resources/db/supabase";
 import {
   SelectToken,
-  InsertToken,
-  token
+  InsertToken
 } from "../../../resources/db/schema";
 
 export interface TokenMetadata {
@@ -32,19 +30,23 @@ export class TokenRepository {
     tokenAddress: string
   ): Promise<SelectToken | null> {
     try {
-      const result = await db
+      const { data, error } = await supabase
+        .from('token')
         .select()
-        .from(token)
-        .where(
-          and(
-            eq(token.walletAddress, walletAddress),
-            eq(token.tokenAddress, tokenAddress),
-            eq(token.chainId, chainId)
-          )
-        )
-        .limit(1);
+        .eq('wallet_address', walletAddress)
+        .eq('token_address', tokenAddress)
+        .eq('chain_id', chainId)
+        .single();
 
-      return result.length > 0 ? result[0] : null;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows returned
+          return null;
+        }
+        throw new TechnicalError(`Database error: ${error.message}`);
+      }
+
+      return data;
     } catch (error: unknown) {
       console.error("Error getting token", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -57,21 +59,21 @@ export class TokenRepository {
     chainId: number,
   ): Promise<SelectToken[]> {
     try {
-      const result = await db
+      const { data, error } = await supabase
+        .from('token')
         .select()
-        .from(token)
-        .where(
-          and(
-            eq(token.walletAddress, walletAddress),
-            eq(token.chainId, chainId),
-          )
-        )
+        .eq('wallet_address', walletAddress)
+        .eq('chain_id', chainId);
 
-      return result;
+      if (error) {
+        throw new TechnicalError(`Database error: ${error.message}`);
+      }
+
+      return data || [];
     } catch (error: unknown) {
-      console.error("Error getting token", error);
+      console.error("Error getting tokens", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      throw new TechnicalError(`Error getting token: ${errorMessage}`);
+      throw new TechnicalError(`Error getting tokens: ${errorMessage}`);
     }
   }
 
@@ -81,34 +83,42 @@ export class TokenRepository {
     status: "IMPORT" | "BLACKLIST"
   ): Promise<SelectToken[]> {
     try {
-      const result = await db
+      const { data, error } = await supabase
+        .from('token')
         .select()
-        .from(token)
-        .where(
-          and(
-            eq(token.walletAddress, walletAddress),
-            eq(token.chainId, chainId),
-            eq(token.status, status)
-          )
-        )
+        .eq('wallet_address', walletAddress)
+        .eq('chain_id', chainId)
+        .eq('status', status);
 
-      return result;
+      if (error) {
+        throw new TechnicalError(`Database error: ${error.message}`);
+      }
+
+      return data || [];
     } catch (error: unknown) {
-      console.error("Error getting token", error);
+      console.error("Error getting tokens by status", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      throw new TechnicalError(`Error getting token: ${errorMessage}`);
+      throw new TechnicalError(`Error getting tokens by status: ${errorMessage}`);
     }
   }
 
   async createToken(newToken: InsertToken): Promise<SelectToken> {
     try {
-      const result = await db.insert(token).values(newToken).returning();
+      const { data, error } = await supabase
+        .from('token')
+        .insert(newToken)
+        .select()
+        .single();
 
-      if (result.length === 0) {
+      if (error) {
+        throw new TechnicalError(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
         throw new TechnicalError("No data returned after creating token");
       }
 
-      return result[0];
+      return data;
     } catch (error: unknown) {
       console.error("Error creating token", error);
       if (error instanceof TechnicalError) {
@@ -126,25 +136,31 @@ export class TokenRepository {
     updates: Partial<InsertToken>
   ): Promise<SelectToken> {
     try {
-      const result = await db
-        .update(token)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(
-          and(
-            eq(token.walletAddress, walletAddress),
-            eq(token.tokenAddress, tokenAddress),
-            eq(token.chainId, chainId)
-          )
-        )
-        .returning();
+      const { data, error } = await supabase
+        .from('token')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('wallet_address', walletAddress)
+        .eq('token_address', tokenAddress)
+        .eq('chain_id', chainId)
+        .select()
+        .single();
 
-      if (result.length === 0) {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError(
+            `No token found for wallet: ${walletAddress}, token: ${tokenAddress}, chain: ${chainId}`
+          );
+        }
+        throw new TechnicalError(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
         throw new NotFoundError(
           `No token found for wallet: ${walletAddress}, token: ${tokenAddress}, chain: ${chainId}`
         );
       }
 
-      return result[0];
+      return data;
     } catch (error: unknown) {
       console.error("Error updating token", error);
       if (error instanceof NotFoundError || error instanceof TechnicalError) {
